@@ -1,0 +1,6 @@
+rootProject.name = 'shin-project'
+include 'shin-api'
+include 'shin-db'
+include 'shin-common'
+include 'shin-admin'
+
