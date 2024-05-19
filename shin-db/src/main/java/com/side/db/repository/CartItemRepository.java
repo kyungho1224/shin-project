@@ -13,8 +13,15 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
 	Optional<CartItem> findFirstById(Long carItemId);
 
-	default CartItem getValidCartItemOrThrow(Long cartItemId) {
+	Optional<CartItem> findFirstByProductId(Long productId);
+
+	default CartItem getValidCartItemWithIdOrThrow(Long cartItemId) {
 		return findFirstById(cartItemId)
+		  .orElseThrow(() -> new ApiException(ApiErrorCode.NOT_FOUND_CART_ITEM));
+	}
+
+	default CartItem getValidCartItemWithProductIdOrThrow(Long productId) {
+		return findFirstByProductId(productId)
 		  .orElseThrow(() -> new ApiException(ApiErrorCode.NOT_FOUND_CART_ITEM));
 	}
 

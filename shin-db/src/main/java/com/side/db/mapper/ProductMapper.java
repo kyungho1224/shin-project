@@ -3,14 +3,17 @@ package com.side.db.mapper;
 import com.side.db.dto.ProductDto;
 import com.side.db.entity.Product;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-@Mapper
+@Mapper(
+  componentModel = MappingConstants.ComponentModel.SPRING,
+  unmappedSourcePolicy = ReportingPolicy.IGNORE,
+  unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 public interface ProductMapper {
-
-	ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
 
 	Product toProduct(ProductDto.RegisterRequest request);
 

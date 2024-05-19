@@ -17,17 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
 	private final ProductRepository productRepository;
+	private final ProductMapper productMapper;
 
 	@Transactional(readOnly = true)
 	public Page<ProductDto.SimpleInfo> selectAllProducts(Pageable pageable) {
 		return productRepository.findAllByRegisterStatusOrderByCreatedAtDesc(RegisterStatus.REGISTERED, pageable)
-		  .map(ProductMapper.INSTANCE::toSimpleInfo);
+		  .map(productMapper::toSimpleInfo);
 	}
 
 	@Transactional(readOnly = true)
 	public ProductDto.DetailInfo selectOneProduct(Long productId) {
 		Product validProduct = productRepository.getValidProductOrThrow(productId, RegisterStatus.REGISTERED);
-		return ProductMapper.INSTANCE.toDetailInfo(validProduct);
+		return productMapper.toDetailInfo(validProduct);
 	}
 
 }

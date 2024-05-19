@@ -6,15 +6,18 @@ import com.side.db.entity.CartItem;
 import com.side.db.entity.Customer;
 import com.side.db.entity.Product;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper
+@Mapper(
+  componentModel = MappingConstants.ComponentModel.SPRING,
+  unmappedSourcePolicy = ReportingPolicy.IGNORE,
+  unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 public interface CartMapper {
-
-	CartMapper INSTANCE = Mappers.getMapper(CartMapper.class);
 
 	Cart createCart(Customer customer);
 

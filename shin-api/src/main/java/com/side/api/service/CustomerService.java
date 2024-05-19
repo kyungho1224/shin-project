@@ -23,6 +23,7 @@ public class CustomerService {
 	private final JwtProvider jwtProvider;
 	private final CustomerRepository customerRepository;
 	private final CartService cartService;
+	private final CustomerMapper customerMapper;
 
 	public boolean isDuplicateEmail(String email) {
 		return customerRepository.existsByEmail(email);
@@ -32,13 +33,13 @@ public class CustomerService {
 		if (isDuplicateEmail(email)) {
 			throw new ApiException(ApiErrorCode.DUPLICATION_CUSTOMER);
 		}
-		Customer customer = CustomerMapper.INSTANCE.toCustomer(
+		Customer customer = customerMapper.toCustomer(
 		  email, passwordEncoder.encode(password),
 		  CustomerRole.MEMBER, UserStatus.REGISTERED
 		);
 		Customer savedCustomer = customerRepository.save(customer);
 		cartService.createCart(savedCustomer);
-		return CustomerMapper.INSTANCE.toSignUpResponse(savedCustomer);
+		return customerMapper.toSignUpResponse(savedCustomer);
 	}
 
 	public void verifyCustomer(String uuid) {
@@ -51,7 +52,7 @@ public class CustomerService {
 	public CustomerDto.SignInResponse loginCustomer(String email, String password) {
 		Customer validCustomer = customerRepository.getValidCustomerOrThrow(email, UserStatus.REGISTERED);
 		if (passwordEncoder.matches(password, validCustomer.getPassword())) {
-			return CustomerMapper.INSTANCE.toSignInResponse(validCustomer, jwtProvider.generatedToken(email));
+			return customerMapper.toSignInResponse(validCustomer, jwtProvider.generatedToken(email));
 		}
 		throw new ApiException(ApiErrorCode.NOT_MATCH_PASSWORD);
 	}
@@ -60,13 +61,13 @@ public class CustomerService {
 		if (isDuplicateEmail(email)) {
 			throw new ApiException(ApiErrorCode.DUPLICATION_CUSTOMER);
 		}
-		Customer tmpCustomer = CustomerMapper.INSTANCE.toCustomer(
+		Customer tmpCustomer = customerMapper.toCustomer(
 		  email, passwordEncoder.encode(email.split("@")[1]),
 		  CustomerRole.NON_MEMBER, UserStatus.NOT_CERTIFICATED
 		);
 		Customer savedCustomer = customerRepository.save(tmpCustomer);
 		cartService.createCart(savedCustomer);
-		return CustomerMapper.INSTANCE.toSignUpResponse(savedCustomer);
+		return customerMapper.toSignUpResponse(savedCustomer);
 	}
 
 }

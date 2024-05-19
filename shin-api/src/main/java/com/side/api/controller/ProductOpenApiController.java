@@ -1,23 +1,22 @@
 package com.side.api.controller;
 
-import com.side.api.common.annotation.CurrentCustomer;
-import com.side.api.service.CartService;
-import com.side.api.service.CustomerDetails;
 import com.side.api.service.ProductService;
 import com.side.db.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
-@RequestMapping("/open-api/products")
+@RequestMapping("/open-api/customers/products")
 @RestController
 public class ProductOpenApiController {
 
 	private final ProductService productService;
-	private final CartService cartService;
 
 	@GetMapping("")
 	public ResponseEntity<Page<ProductDto.SimpleInfo>> getAllProducts(Pageable pageable) {
@@ -29,20 +28,6 @@ public class ProductOpenApiController {
 	public ResponseEntity<ProductDto.DetailInfo> getOneProduct(@PathVariable Long productId) {
 		ProductDto.DetailInfo product = productService.selectOneProduct(productId);
 		return ResponseEntity.ok(product);
-	}
-
-	@PostMapping("/{productId}/add-cart")
-	public String addCart(
-	  @CurrentCustomer CustomerDetails customer,
-	  @PathVariable Long productId,
-	  @RequestParam(required = false, defaultValue = "1") Integer quantity
-	) {
-		if (customer == null) {
-			return "비회원입니다";
-		} else {
-			cartService.addCartItem(customer.getUsername(), productId, quantity);
-			return "회원입니다";
-		}
 	}
 
 }
