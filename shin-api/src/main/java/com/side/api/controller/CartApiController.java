@@ -26,6 +26,35 @@ public class CartApiController {
 		return ResponseEntity.ok(list);
 	}
 
+	@PostMapping("")
+	public ResponseEntity<Boolean> addCart(
+	  @CurrentCustomer CustomerDetails customer,
+	  @RequestParam Long productId,
+	  @RequestParam(required = false, defaultValue = "1") Integer quantity
+	) {
+		/* TODO 비회원 주문은 나중에 처리하기 */
+		cartService.addCartItem(customer.getUsername(), productId, quantity);
+		return ResponseEntity.ok().build();
+	}
+
+	@PatchMapping("/{cartItemId}/increase")
+	public ResponseEntity<List<CartDto.List>> cartItemCountIncrease(
+	  @CurrentCustomer CustomerDetails customer,
+	  @PathVariable Long cartItemId
+	) {
+		return ResponseEntity.ok(cartService.quantityUpdate(customer.getCustomer(), cartItemId, "increase"));
+
+	}
+
+	@PatchMapping("/{cartItemId}/decrease")
+	public ResponseEntity<List<CartDto.List>> cartItemCountDecrease(
+	  @CurrentCustomer CustomerDetails customer,
+	  @PathVariable Long cartItemId
+	) {
+		;
+		return ResponseEntity.ok(cartService.quantityUpdate(customer.getCustomer(), cartItemId, "decrease"));
+	}
+
 	@DeleteMapping("/{cartItemId}")
 	public ResponseEntity<Void> removeCartItem(
 	  @CurrentCustomer CustomerDetails customer,

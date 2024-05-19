@@ -17,4 +17,12 @@ public class CartItem extends BaseEntity {
 
 	private int quantity;
 
+	public void increaseQuantity(int quantity) {
+		this.quantity += quantity;
+	}
+
+	public void decreaseQuantity(int quantity) {
+		this.quantity -= quantity;
+	}
+
 }

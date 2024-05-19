@@ -29,60 +29,77 @@ public class CartService {
 	private final CartRepository cartRepository;
 	private final ProductRepository productRepository;
 	private final CustomerRepository customerRepository;
+	private final CartMapper cartMapper;
 
 	public Cart createCart(Customer customer) {
-		// 장바구니 생성
-		Cart newCart = CartMapper.INSTANCE.createCart(customer);
+		Cart newCart = cartMapper.createCart(customer);
 		return cartRepository.save(newCart);
 	}
 
 	public List<CartDto.List> selectCartList(Customer customer) {
-		// 회원 장바구니 목록 조회
 		Cart validCart = cartRepository.getValidCartOrThrow(customer);
-		return CartMapper.INSTANCE.getAllCartItem(validCart.getCartItems());
+		return cartMapper.getAllCartItem(validCart.getCartItems());
 	}
 
 	public void addCartItem(String email, Long productId, int quantity) {
-		// 장바구니 담기, 카트아이템 생성 후 저장하고 추가
+		// TODO 이전에 추가된 같은 상품이 있다면 수량만 업데이트 하기
 		Customer validCustomer = customerRepository.getValidCustomerOrThrow(email, UserStatus.REGISTERED);
 		Product validProduct = productRepository.getValidProductOrThrow(productId, RegisterStatus.REGISTERED);
 		int currentQuantity = validProduct.getCapacity();
 
-		/* TODO 주문에서 처리하기 */
-//		validProduct.sellStock(quantity);
-//		productRepository.save(validProduct);
-
-		if (currentQuantity >= quantity) {
-			CartItem newItem = CartMapper.INSTANCE.addCart(validProduct, quantity);
-			CartItem savedItem = cartItemRepository.save(newItem);
-			cartRepository.findFirstByCustomer(validCustomer)
-			  .ifPresentOrElse(cart -> cart.addItem(savedItem),
-				() -> createCart(validCustomer).addItem(savedItem));
+		Cart validCart = cartRepository.getValidCartOrThrow(validCustomer);
+		if (isContainProductInCart(validCart.getCartItems(), validProduct)) {
+			CartItem validCartItem = cartItemRepository.getValidCartItemWithProductIdOrThrow(validProduct.getId());
+			validCartItem.increaseQuantity(quantity);
+			cartItemRepository.save(validCartItem);
 		} else {
-			throw new ApiException(ApiErrorCode.INSUFFICIENT_STOCK);
+			if (currentQuantity >= quantity) {
+				CartItem newItem = cartMapper.addCart(validProduct, quantity);
+				CartItem savedItem = cartItemRepository.save(newItem);
+				cartRepository.findFirstByCustomer(validCustomer)
+				  .ifPresentOrElse(cart -> cart.addItem(savedItem),
+					() -> createCart(validCustomer).addItem(savedItem));
+			} else {
+				throw new ApiException(ApiErrorCode.INSUFFICIENT_STOCK);
+			}
+		}
+	}
+
+	public List<CartDto.List> quantityUpdate(Customer customer, Long cartItemId, String type) {
+		CartItem validCartItem = cartItemRepository.getValidCartItemWithIdOrThrow(cartItemId);
+		Product product = validCartItem.getProduct();
+		int currentProductCapacity = product.getCapacity();
+		int preQuantity = validCartItem.getQuantity();
+
+		if (type.equals("increase")) {
+			if (currentProductCapacity >= preQuantity + 1) {
+				validCartItem.increaseQuantity(1);
+			} else {
+				throw new ApiException(ApiErrorCode.INSUFFICIENT_STOCK);
+			}
+		} else {
+			if (preQuantity > 1) {
+				validCartItem.decreaseQuantity(1);
+			} else {
+				deleteCartItem(customer, cartItemId);
+			}
 		}
 
-	}
-
-	public void updateCartItem(Long productId, int quantity) {
-
-	}
-
-	public void increaseCount() {
-
-	}
-
-	public void decreaseCount() {
-
+		return selectCartList(customer);
 	}
 
 	public void deleteCartItem(Customer customer, Long carItemId) {
 		Cart validCart = cartRepository.getValidCartOrThrow(customer);
-		CartItem validCartItem = cartItemRepository.getValidCartItemOrThrow(carItemId);
+		CartItem validCartItem = cartItemRepository.getValidCartItemWithIdOrThrow(carItemId);
 		if (validCart.getCartItems().contains(validCartItem)) {
 			validCart.removeItem(validCartItem);
 			cartItemRepository.delete(validCartItem);
 		}
+	}
+
+	public Boolean isContainProductInCart(List<CartItem> cartItemList, Product product) {
+		return cartItemList.stream()
+		  .anyMatch(cartItem -> cartItem.getProduct().getId().equals(product.getId()));
 	}
 
 }

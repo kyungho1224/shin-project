@@ -5,14 +5,28 @@ import com.side.db.constant.UserStatus;
 import com.side.db.dto.CustomerDto;
 import com.side.db.entity.Customer;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+@Mapper(
+  componentModel = MappingConstants.ComponentModel.SPRING,
+  unmappedSourcePolicy = ReportingPolicy.IGNORE,
+  unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 public interface CustomerMapper {
 
-	CustomerMapper INSTANCE = Mappers.getMapper(CustomerMapper.class);
-
+	//	@Mappings(
+//	  value = {
+//		@Mapping(target = "profileImg", ignore = true),
+//		@Mapping(target = "address", ignore = true),
+//		@Mapping(target = "mobile", ignore = true),
+//		@Mapping(target = "provider", ignore = true),
+//		@Mapping(target = "providerId", ignore = true),
+//		@Mapping(target = "orders", ignore = true),
+//		@Mapping(target = "reviews", ignore = true)
+//	  }
+//	)
 	Customer toCustomer(
 	  String email, String password, CustomerRole customerRole, UserStatus userStatus
 	);
